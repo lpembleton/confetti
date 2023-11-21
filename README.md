@@ -19,7 +19,7 @@ Although the pipeline has been written for the standard single end GBS read data
      - Read the CSV sample sheet to retrieve the required information for each sample, including optional sequencing metadata.
      - Download the FastQ.gz files associated with each sample.
 
-2. Sequence Read Trimming:
+2. Sequence Read Trimming: (can be skipped by adding --skip_fastp)
      - Utilize ([`fastp`](https://github.com/OpenGene/fastp)) to perform quality-based trimming and adapter removal on the sequencing reads.
      - Generate trimmed FastQ files as output.
 
@@ -68,6 +68,7 @@ nextflow run main.nf \
    --outPrefix <output-prefix>
 ```
 
+To skip fastp trimming just add `--skip_fastp` to the run command
 
 ## Pipeline Output
 The pipeline outputs genetic variants and associated genotype calls in vcf and gvcf format along with a MultiQC report.
