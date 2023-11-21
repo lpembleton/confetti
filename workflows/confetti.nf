@@ -12,6 +12,7 @@ if (params.reference == null) error "Please specify a reference genome with --re
 // demo reference  can be found in docs/example-data/Lolium_2.6.1_Chromosomes_Scaffolds_chr2_0-10M.fasta
 
 
+params.skip_fastp = false
 
 // print parameters
 
@@ -23,6 +24,7 @@ log.info """\
     ======================================================================
     samplesheet: ${params.input}
     reference: ${params.reference}
+    skip fastp: ${params.skip_fastp}
     output directory: ${params.outdir}
     genomic regions: ${params.regions}
     output prefix: ${params.outPrefix}
@@ -81,20 +83,29 @@ workflow CONFETTI {
 
     // PREPROCESSING
 
-    // Read quality and adapter trimming
-    //FASTP(input_sample)
-    // Gather used softwares versions and reports
-    //versions = versions.mix(FASTP.out.versions)
-    //reports = reports.mix(FASTP.out.json.collect{ meta, json -> json })
-    //reports = reports.mix(FASTP.out.html.collect{ meta, html -> html })
- 
+    if (params.skip_fastp) { // skip fastp trimming and qc
 
-    // QC on trimmed reads
-    //FASTQC(FASTP.out.reads)
-    FASTQC(input_sample)
-    // Gather used softwares versions and reports
-    versions = versions.mix(FASTQC.out.versions)
-    reports = reports.mix(FASTQC.out.zip.collect{ meta, logs -> logs })
+        // QC on trimmed reads
+        FASTQC(input_sample)
+        // Gather used softwares versions and reports
+        versions = versions.mix(FASTQC.out.versions)
+        reports = reports.mix(FASTQC.out.zip.collect{ meta, logs -> logs })
+
+    } else { // run fastp trimming and qc
+
+        // Read quality and adapter trimming
+        FASTP(input_sample)
+        // Gather used softwares versions and reports
+        versions = versions.mix(FASTP.out.versions)
+        reports = reports.mix(FASTP.out.json.collect{ meta, json -> json })
+        reports = reports.mix(FASTP.out.html.collect{ meta, html -> html })
+    
+        // QC on trimmed reads
+        FASTQC(FASTP.out.reads)
+        // Gather used softwares versions and reports
+        versions = versions.mix(FASTQC.out.versions)
+        reports = reports.mix(FASTQC.out.zip.collect{ meta, logs -> logs })
+    }
 
     // MAPPING
 
